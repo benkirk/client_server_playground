@@ -6,7 +6,7 @@ import random
 import os, sys
 import sys
 
-address = ('localhost', 6000)
+address = ('casper-login2', 6000)
 
 my_pid = os.getpid()
 

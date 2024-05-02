@@ -7,7 +7,7 @@ import subprocess
 from functools import lru_cache, wraps
 from datetime import datetime, timedelta, UTC
 
-CACHE_TIMEOUT = 2 # seconds
+CACHE_TIMEOUT = 5 # seconds
 CACHE_SIZE = 256 # cached entries
 
 address = ('', 6000)     # family is deduced to be 'AF_INET'
