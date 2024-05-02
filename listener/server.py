@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, UTC
 CACHE_TIMEOUT = 2 # seconds
 CACHE_SIZE = 256
 
-address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
+address = ('', 6000)     # family is deduced to be 'AF_INET'
 
 trusted_exe = set(['qstat',
                    'ls',
@@ -25,8 +25,8 @@ def timed_lru_cache(seconds: int, maxsize: int = 128):
 
         @wraps(func)
         def wrapped_func(*args, **kwargs):
-            print(func.cache_info())
             if datetime.now(UTC) >= func.expiration:
+                print(func.cache_info())
                 func.cache_clear()
                 func.expiration = datetime.now(UTC) + func.lifetime
             return func(*args, **kwargs)
