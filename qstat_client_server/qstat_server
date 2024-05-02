@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+#----------------------------------------------------------------------------
+# environment & site config, if any
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+[ -f ${SCRIPTDIR}/config_env.sh ] && . ${SCRIPTDIR}/config_env.sh
+#----------------------------------------------------------------------------
+
+module load conda >/dev/null 2>&1 || { echo "cannot load conda module"; exit 1; }
+
+conda activate /glade/work/benkirk/conda-envs/client-server || { echo "cannot activate conda environment"; exit 1; }
+
+${SCRIPTDIR}/qstat_server.py
