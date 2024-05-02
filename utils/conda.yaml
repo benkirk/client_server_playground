@@ -1,0 +1,24 @@
+# create a minimal 'mkdocs' conda env, with a pinned python version
+# and all pip dependencies taken from 'requirements.txt'
+
+name: dask
+channels:
+  - conda-forge
+  - base
+dependencies:
+  - humanfriendly
+  - make
+  - nbclassic
+  - numpy
+  - memory_profiler
+  - openpyxl
+  - pandas
+  - pyarrow
+  - python=3.12
+  - jupyterlab
+  - dask
+  - multiprocess
+  - yaml
+  - pip
+  - pip:
+    - mpi4py
