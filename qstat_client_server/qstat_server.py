@@ -4,40 +4,48 @@ from multiprocessing.connection import Listener
 import time
 import random
 import subprocess
+from cachetools import cached, TTLCache
 from functools import lru_cache, wraps
 from datetime import datetime, timedelta, UTC
 
 CACHE_TIMEOUT = 5 # seconds
 CACHE_SIZE = 256 # cached entries
 
-address = ('', 6000)     # family is deduced to be 'AF_INET'
+address = ('', 6000) # listen on all interfaces, family is deduced to be 'AF_INET'
 
 trusted_exe = set(['qstat',
                    'ls',
                    '/opt/pbs/bin/qstat'])
 
-# https://realpython.com/lru-cache-python/#adding-cache-expiration
-def timed_lru_cache(seconds: int, maxsize: int = 128):
-    def wrapper_cache(func):
-        func = lru_cache(maxsize=maxsize)(func)
-        func.lifetime = timedelta(seconds=seconds)
-        func.expiration = datetime.now(UTC) + func.lifetime
-
-        @wraps(func)
-        def wrapped_func(*args, **kwargs):
-            if datetime.now(UTC) >= func.expiration:
-                print(func.cache_info())
-                func.cache_clear()
-                func.expiration = datetime.now(UTC) + func.lifetime
-            return func(*args, **kwargs)
-
-        return wrapped_func
-    return wrapper_cache
-
-
+# # https://realpython.com/lru-cache-python/#adding-cache-expiration
+# def timed_lru_cache(seconds: int, maxsize: int = 128):
+#     def wrapper_cache(func):
+#         func = lru_cache(maxsize=maxsize)(func)
+#         func.lifetime = timedelta(seconds=seconds)
+#         func.expiration = datetime.now(UTC) + func.lifetime
+#
+#         @wraps(func)
+#         def wrapped_func(*args, **kwargs):
+#             if datetime.now(UTC) >= func.expiration:
+#                 print(func.cache_info())
+#                 func.cache_clear()
+#                 func.expiration = datetime.now(UTC) + func.lifetime
+#             return func(*args, **kwargs)
+#
+#         return wrapped_func
+#     return wrapper_cache
 
 
-@timed_lru_cache(seconds=CACHE_TIMEOUT, maxsize=CACHE_SIZE)
+
+
+# @timed_lru_cache(seconds=CACHE_TIMEOUT, maxsize=CACHE_SIZE)
+# def run_command(args):
+#     result = subprocess.run(args, capture_output=True, encoding='utf8')
+#     return result
+
+
+
+@cached(cache=TTLCache(maxsize=CACHE_SIZE, ttl=CACHE_TIMEOUT), info=True)
 def run_command(args):
     result = subprocess.run(args, capture_output=True, encoding='utf8')
     return result
@@ -62,11 +70,6 @@ with Listener(address,
             cmd = request[0]
             args = request[1:]
 
-
-            # print('  --> {} asked me to run \"{} {}\"'.format(listener.last_accepted,
-            #                                                   cmd,
-            #                                                   args))
-
             n_msgs += 1
             elapsed = time.time() - ts
             rate = float(n_msgs) / elapsed
@@ -82,6 +85,7 @@ with Listener(address,
                 #result = subprocess.run(request[1], capture_output=True, encoding='utf8')
                 result = run_command(tuple(request[1]))
                 #print(result.stdout)
+                print(run_command.cache_info())
                 conn.send((result.stdout, result.stderr, result.returncode))
 
             else:

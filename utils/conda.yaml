@@ -6,6 +6,7 @@ channels:
   - conda-forge
   - base
 dependencies:
+  - cachetools
   - humanfriendly
   - make
   - nbclassic
